@@ -1,53 +1,95 @@
 <template>
   <div>
-    <div class="input">
-      <h1>TodoTask</h1>
+    <v-card text="" style="display: inline-block; padding: 20px; margin-top: 20px;">
+      <h2>TodoTask</h2>
       Task Name
-      <input v-model="text" type="text"><br><br>
-      Due Date&nbsp;&nbsp;
-      <input v-model="date" type="date"><br><br>
-    </div>
-    <div class="button">
-      <button @click="addTask()">ADD</button>
-    </div>
-    <div class="show" v-for="task in data" :key="task.id">
-      <p>
-        <p0>{{ task.name }}</p0>
-        <p1>{{ task.dueDate }}</p1>
-        <p2>
-          <Icon name="eva:edit-fill" @click="openEditModal(task.id)"></Icon>
-        </p2>
-        <p3>
-          <Icon name="eva:trash-2-fill" @click="deleteTask(task.id)"></Icon>
-        </p3>
-      </p>
-    </div>
-    <div v-if="showEditModal" class="modal">
-      <p>Edit Todo</p>
-      <input v-model="editedText" value.task.name type="text"><br><br>
-      <input v-model="editedDate" value.task.dueDate type="date"><br><br>
-      <button1 @click="closeEditModal">CANCEL</button1>
-      <button2 @click="saveChanges">SUBMIT</button2>
-    </div>
+      <v-text-field style="width: 300px; " label="input Task Name" v-model="text" variant="outlined"></v-text-field>
+      Due Date
+      <v-text-field style="width: 300px; " label="input Date" v-model="date" type="date"
+        variant="outlined"></v-text-field>
+      <v-select label="หมวดหมู่" :items="['California', 'Colorado', 'Florida', 'Georgia']"
+        variant="underlined"></v-select>
+      <v-btn style="background-color: deepskyblue; color: white;" @click="addTask()" variant="elevated">ADD</v-btn>
+    </v-card><br><br>
+
+    <v-card style="width: 800px; height: 70px; background-color: whitesmoke; margin: auto; margin-top: 10px;" text=""
+      v-for="task in data" :key="task.id">
+      <v-row>
+        <v-col>
+          <p>{{ task.name }}</p>
+        </v-col>
+        <v-col>
+          <p>{{ task.dueDate }}</p>
+        </v-col>
+        <v-col>
+          <v-icon style="color: orange; margin-left: 300px;" @click="openEditModal(task.id)">mdi-pencil</v-icon>
+        </v-col>
+        <v-col>
+          <v-icon style="color: red;" @click="deleteTask(task.id)">mdi-delete</v-icon>
+        </v-col>
+      </v-row>
+    </v-card>
+
+    <v-dialog v-model="showEditModal" width="500">
+      <v-card>
+        <v-card-text style="margin-top: 10px;">
+          <h4>Edit Todo</h4><br>
+          <v-text-field v-model="editedText" label="Task Name" type="text" variant="solo-filled"></v-text-field><br><br>
+          <v-text-field v-model="editedDate" label="Due Date" type="date" variant="solo-filled"></v-text-field><br><br>
+          <v-btn style="background-color: red; color: white;" @click="closeEditModal">CANCEL</v-btn>
+          <v-btn style="margin-left: 15px; background-color: green; color: white;" @click="saveChanges">SUBMIT</v-btn>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </div>
+
+  <v-dialog v-model="errorDialog" max-width="400">
+    <v-card>
+      <v-card-title style="color: red;">ข้อมูลผิดพลาด</v-card-title>
+      <v-card-text>
+        กรุณากรอกข้อมูลให้ครบถ้วน !!
+      </v-card-text>
+      <v-card-actions style="margin-left: 150px;">
+        <v-btn style="margin-left: 15px; margin-top: 20px; background-color: rgb(49, 49, 49); color: white;"
+          @click="closeErrorDialog">OK</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
 import { ref } from 'vue';
-const text = ref('')
-const date = ref()
+
+const text = ref('');
+const date = ref('');
 const data = ref([
   { id: 1, name: 'read a booktee', dueDate: '2023-09-24' },
-  { id: 2, name: 'another task', dueDate: '2023-09-25' },
-  { id: 3, name: 'test', dueDate: '2023-09-25' },
+  { id: 2, name: 'read a bookko', dueDate: '2023-09-25' },
+  { id: 3, name: 'read a bookpai', dueDate: '2023-09-25' },
 ]);
 
+const errorDialog = ref(false);
+
 const addTask = () => {
+  if (!text.value.trim() || !date.value) {
+    // Show the error dialog if the data is incomplete
+    errorDialog.value = true;
+    return;
+  }
+
   data.value.push({
     id: data.value.length + 1,
     name: text.value,
     dueDate: date.value,
   });
+
+  text.value = '';
+  date.value = '';
+}
+
+const closeErrorDialog = () => {
+  // Close the error dialog
+  errorDialog.value = false;
 }
 
 const deleteTask = (taskId) => {
@@ -56,10 +98,12 @@ const deleteTask = (taskId) => {
     data.value.splice(taskIndex, 1);
   }
 };
+
 const showEditModal = ref(false);
 const editedTaskId = ref(null);
 const editedText = ref('');
 const editedDate = ref('');
+
 const openEditModal = (taskId) => {
   const task = data.value.find(task => task.id === taskId);
   if (task) {
@@ -88,124 +132,7 @@ const closeEditModal = () => {
 </script>
 
 <style scoped>
-.modal input {
-  border-radius: 4px;
-  width: 300px;
-  height: 40px;
-  border: 1px solid rgb(29, 29, 29);
-}
-
-.modal {
-  border-radius: 8px;
-  width: 500px;
-  height: 250px;
-  border: 1px solid rgb(29, 29, 29);
-  margin-top: 20px;
-  margin-left: 500px;
-}
-
-.input input {
-  border-radius: 4px;
-  width: 200px;
-  height: 25px;
-  border: 1px solid rgb(29, 29, 29);
-  margin-left: 10px;
-}
-
 div {
   text-align: center;
-}
-
-button {
-  background-color: white;
-  border: none;
-  color: deepskyblue;
-  padding: 6px 15px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin: 4px 2px;
-  cursor: pointer;
-  border: 1px solid deepskyblue;
-  border-radius: 3px;
-}
-
-button:hover {
-  background-color: deepskyblue;
-  /* Green */
-  color: white;
-}
-
-.show {
-  border: 1px solid black;
-  width: 700px;
-  height: 60px;
-  border-radius: 10px;
-  margin-top: 10px;
-  margin-left: 400px;
-  text-align: start;
-
-}
-
-.show p {
-  margin-left: 30px;
-  display: flex;
-}
-
-.show p0 {
-  display: flex;
-  margin-top: 2px;
-}
-
-.show p1 {
-  margin-left: auto;
-  display: flex;
-  margin-top: 2px;
-}
-
-.show p2 {
-  display: flex;
-  margin-left: 10px;
-  font-size: 25px;
-  margin-right: 10px;
-  color: orange;
-}
-
-.show p3 {
-  display: flex;
-  margin-right: 20px;
-  font-size: 22px;
-  color: red;
-}
-
-button1 {
-  background-color: white;
-  border: none;
-  color: red;
-  padding: 6px 15px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin: 4px 2px;
-  cursor: pointer;
-  border: 1px solid red;
-  border-radius: 3px;
-}
-
-button2 {
-  background-color: white;
-  border: none;
-  color: green;
-  padding: 6px 15px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin: 4px 2px;
-  cursor: pointer;
-  border: 1px solid green;
-  border-radius: 3px;
 }
 </style>
